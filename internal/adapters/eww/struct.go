@@ -3,7 +3,6 @@ package eww
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -11,12 +10,12 @@ import (
 )
 
 type EwwTaskBar struct {
-	output *os.File
+	monitor string
 }
 
-func CreateEwwTaskBar(ctx context.Context, output *os.File) (EwwTaskBar, error) {
+func CreateEwwTaskBar(ctx context.Context, monitor string) (EwwTaskBar, error) {
 	ret := EwwTaskBar{}
-	ret.output = output
+	ret.monitor = monitor
 	return ret, nil
 }
 
@@ -25,8 +24,10 @@ func (e EwwTaskBar) Output(ctx context.Context, tags entities.DwlTagsInformation
 	ctxChild, ctxChildCancel := context.WithCancel(ctx)
 	defer ctxChildCancel()
 	for _, v := range tags.Tags {
-		aux, _ := e.item(ctxChild, v)
-		fmt.Print(aux)
+		if v.Monitor == e.monitor {
+			aux, _ := e.item(ctxChild, v)
+			fmt.Print(aux)
+		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -70,25 +71,23 @@ func (e EwwTaskBar) item(ctx context.Context, tag entities.DwlTag) (string, erro
 
 func (e EwwTaskBar) convertTagToString(ctx context.Context, tag entities.DwlTag) string {
 	var ret string = "f"
-	if tag.Monitor == "eDP-1" {
-		switch tag.Tag {
-		case 0:
-			fallthrough
-		case 1:
-			fallthrough
-		case 2:
-			fallthrough
-		case 3:
-			ret = strconv.Itoa(int(tag.Tag + 1))
-		case 4:
-			ret = "q"
-		case 5:
-			ret = "w"
-		case 6:
-			ret = "e"
-		case 7:
-			ret = "r"
-		}
+	switch tag.Tag {
+	case 0:
+		fallthrough
+	case 1:
+		fallthrough
+	case 2:
+		fallthrough
+	case 3:
+		ret = strconv.Itoa(int(tag.Tag + 1))
+	case 4:
+		ret = "q"
+	case 5:
+		ret = "w"
+	case 6:
+		ret = "e"
+	case 7:
+		ret = "r"
 	}
 	return ret
 }
