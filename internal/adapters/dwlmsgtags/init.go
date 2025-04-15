@@ -25,11 +25,7 @@ func (d DwlMsgGetter) GetTags(ctx context.Context) (entities.DwlTagsInformation,
 	if err != nil {
 		return ret, fmt.Errorf("Failed to execute dwlmsg %w", err)
 	}
-	i := len(output) - 2
-	for i > 0 && output[i] != '\n' {
-		i--
-	}
-	i++
+	i := len(output)
 	outputString := string(output[0:i])
 	j := 0
 	var pos uint8 = 0
@@ -46,6 +42,14 @@ func (d DwlMsgGetter) GetTags(ctx context.Context) (entities.DwlTagsInformation,
 			tag.Monitor = sliceString
 			break
 		case 1:
+			if sliceString == "tags" {
+				for outputString[z] != '\n' {
+					z++
+				}
+				pos = 0
+				j = z + 1
+				continue
+			}
 			break
 		case 2:
 			aux, err := strconv.Atoi(sliceString)
